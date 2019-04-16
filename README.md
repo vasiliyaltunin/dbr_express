@@ -30,7 +30,7 @@ type UserList []User
 ### Select
 
 ```go
-selectVal := dbre.DbrExpress(Session).Select("users", "*", "uid>5", user)
+selectVal := dbre.DbrExpress(Session).Select("users", "*", user, "uid>?", 5)
 vals := (*selectVal.(*UserList))
 ```
 

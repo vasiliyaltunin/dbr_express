@@ -1,4 +1,4 @@
-// Package vasiliyaltunin/dbr_express is gocraft/dbr wrapper that allow you do simple sql query - select, insert, update and delete just in one string
+//Package dbre is gocraft/dbr wrapper that allow you do simple sql query - select, insert, update and delete just in one string
 package dbre
 
 import (
@@ -7,18 +7,20 @@ import (
 	"github.com/vasiliyaltunin/dbr"
 )
 
-type dbrExpressStmt struct {
+//DbrExpressStmt - holds session for dbr
+type DbrExpressStmt struct {
 	Session *dbr.Session
 }
 
 var sess dbr.Session
 
-func DbrExpress(session *dbr.Session) *dbrExpressStmt {
-	return &dbrExpressStmt{Session: session}
+//DbrExpress - inits session var for dbr
+func DbrExpress(session *dbr.Session) *DbrExpressStmt {
+	return &DbrExpressStmt{Session: session}
 }
 
 //Select - selects data from database
-func (s *dbrExpressStmt) Select(table, fields, where string, data interface{}) interface{} {
+func (s *DbrExpressStmt) Select(table, fields string, data interface{}, whereStr string, whereVal ...interface{}) interface{} {
 
 	var ptr reflect.Value
 
@@ -31,8 +33,8 @@ func (s *dbrExpressStmt) Select(table, fields, where string, data interface{}) i
 	query := sess.Select(fields).
 		From(table)
 
-	if len(where) > 0 {
-		query.Where(where)
+	if len(whereStr) > 0 {
+		query.Where(whereStr, whereVal...)
 	}
 
 	_, err := query.Load(obj)
@@ -46,7 +48,7 @@ func (s *dbrExpressStmt) Select(table, fields, where string, data interface{}) i
 }
 
 //Insert - inserts data into database
-func (s *dbrExpressStmt) Insert(table string, columns []string, data interface{}) interface{} {
+func (s *DbrExpressStmt) Insert(table string, columns []string, data interface{}) interface{} {
 
 	obj := reflect.ValueOf(data).Interface()
 
@@ -63,7 +65,7 @@ func (s *dbrExpressStmt) Insert(table string, columns []string, data interface{}
 }
 
 //Update - updates data into database
-func (s *dbrExpressStmt) Update(table string, columns []string, data interface{}, whereStr, whereValue string) {
+func (s *DbrExpressStmt) Update(table string, columns []string, data interface{}, whereStr, whereValue string) {
 
 	obj := reflect.ValueOf(data).Interface()
 
@@ -80,7 +82,7 @@ func (s *dbrExpressStmt) Update(table string, columns []string, data interface{}
 }
 
 //Delete - updates data into database
-func (s *dbrExpressStmt) Delete(table string, whereStr, whereValue string) {
+func (s *DbrExpressStmt) Delete(table string, whereStr, whereValue string) {
 
 	sess := s.Session
 
