@@ -40,11 +40,44 @@ func (s *DbrExpressStmt) Select(table, fields string, data interface{}, whereStr
 	_, err := query.Load(obj)
 
 	if err != nil {
-		panic(err)
+		panic("[DBRE] SQL query Select error: " + err.Error())
 	}
 
 	return obj
 
+}
+
+//SelectDbr - setup select and return *dbr.SelectStmt
+func (s *DbrExpressStmt) SelectDbr(table, fields string, whereStr string, whereVal ...interface{}) *dbr.SelectStmt {
+
+	sess := s.Session
+
+	query := sess.Select(fields).
+		From(table)
+
+	if len(whereStr) > 0 {
+		query.Where(whereStr, whereVal...)
+	}
+
+	return query
+
+}
+
+//Load - exec dbr statement
+func (s *DbrExpressStmt) Load(query *dbr.SelectStmt, data interface{}) interface{} {
+	var ptr reflect.Value
+
+	ptr = reflect.New(reflect.TypeOf(data)) // create new pointer
+
+	obj := ptr.Interface()
+
+	_, err := query.Load(obj)
+
+	if err != nil {
+		panic("[DBRE] SQL query Load error: " + err.Error())
+	}
+
+	return obj
 }
 
 //Insert - inserts data into database
@@ -54,10 +87,14 @@ func (s *DbrExpressStmt) Insert(table string, columns []string, data interface{}
 
 	sess := s.Session
 
-	sess.InsertInto(table).
+	_, err := sess.InsertInto(table).
 		Columns(columns...).
 		Record(obj).
 		Exec()
+
+	if err != nil {
+		panic("[DBRE] SQL query Insert error: " + err.Error())
+	}
 
 	// id is set automatically
 	return obj
@@ -65,7 +102,7 @@ func (s *DbrExpressStmt) Insert(table string, columns []string, data interface{}
 }
 
 //Update - updates data into database
-func (s *DbrExpressStmt) Update(table string, columns []string, data interface{}, whereStr, whereValue string) {
+func (s *DbrExpressStmt) Update(table string, columns []string, data interface{}, whereStr string, whereValue ...interface{}) {
 
 	obj := reflect.ValueOf(data).Interface()
 
@@ -73,11 +110,15 @@ func (s *DbrExpressStmt) Update(table string, columns []string, data interface{}
 
 	// m := structs.Map(data)
 
-	sess.Update(table).
+	_, err := sess.Update(table).
 		Columns(columns...).
 		Record(obj).
-		Where(whereStr, whereValue).
+		Where(whereStr, whereValue...).
 		Exec()
+
+	if err != nil {
+		panic("[DBRE] SQL query Update error: " + err.Error())
+	}
 
 }
 
@@ -86,8 +127,12 @@ func (s *DbrExpressStmt) Delete(table string, whereStr, whereValue string) {
 
 	sess := s.Session
 
-	sess.DeleteFrom(table).
+	_, err := sess.DeleteFrom(table).
 		Where(whereStr, whereValue).
 		Exec()
+
+	if err != nil {
+		panic("[DBRE] SQL query Delete error: " + err.Error())
+	}
 
 }
